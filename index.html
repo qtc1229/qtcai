@@ -680,6 +680,37 @@
             font-size: 0.75rem;
             color: #ffb74d;
         }
+        
+        .context-badge {
+            background: rgba(156, 39, 176, 0.3);
+            border: 1px solid rgba(156, 39, 176, 0.5);
+            border-radius: 12px;
+            padding: 2px 8px;
+            font-size: 0.6rem;
+            color: #ce93d8;
+            margin-left: 8px;
+        }
+        
+        .context-controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .context-btn {
+            background: rgba(100, 100, 200, 0.3);
+            border: 1px solid rgba(100, 100, 200, 0.5);
+            color: #a5b4fc;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .context-btn:hover {
+            background: rgba(100, 100, 200, 0.5);
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col fade-in stranger-things-bg">
@@ -694,16 +725,16 @@
             </div>
             <div class="space-y-4">
                 <div class="api-guide p-4 rounded-lg">
-                    <h4 class="font-semibold text-blue-300 mb-2">🎯 公共 API 服务</h4>
-                    <p class="text-sm text-gray-300">系统已配置公共API密钥，所有用户均可免费使用！</p>
+                    <h4 class="font-semibold text-blue-300 mb-2">🎯 上下文记忆功能</h4>
+                    <p class="text-sm text-gray-300">AI会记住整个对话的上下文，最多保留20轮对话记忆</p>
                 </div>
                 
                 <div class="api-guide p-4 rounded-lg">
                     <h4 class="font-semibold text-blue-300 mb-2">🚀 功能说明</h4>
                     <div class="mt-2 text-xs text-gray-400 space-y-1">
-                        <p><strong>📷 图片上传:</strong> 点击图片按钮上传图片进行分析</p>
-                        <p><strong>🎤 语音输入:</strong> 点击麦克风按钮进行语音输入</p>
-                        <p><strong>🤖 多模型支持:</strong> 支持多种AI模型切换</p>
+                        <p><strong>🧠 上下文记忆:</strong> AI会记住之前的对话内容</p>
+                        <p><strong>📷 图片上传:</strong> 支持图片分析和记忆</p>
+                        <p><strong>🎤 语音输入:</strong> 语音转文字输入</p>
                         <p><strong>⏰ 实时时钟:</strong> 顶部显示当前时间</p>
                     </div>
                 </div>
@@ -711,12 +742,12 @@
                 <div class="bg-green-900 bg-opacity-30 border border-green-700 rounded-lg p-4">
                     <div class="flex">
                         <div class="flex-shrink-0">
-                            <i class="fas fa-info-circle text-green-400"></i>
+                            <i class="fas fa-brain text-green-400"></i>
                         </div>
                         <div class="ml-3">
-                            <h3 class="text-sm font-medium text-green-300">服务状态</h3>
+                            <h3 class="text-sm font-medium text-green-300">上下文记忆</h3>
                             <div class="mt-2 text-sm text-green-200">
-                                <p>公共API服务正常运行，欢迎使用！请合理使用资源。</p>
+                                <p>AI会记住整个对话历史，您可以进行连续的、有上下文的对话。</p>
                             </div>
                         </div>
                     </div>
@@ -738,6 +769,7 @@
             </div>
             <h1 class="stranger-title text-xl">异次元 AI 助手</h1>
             <span id="apiStatus" class="ml-2 stranger-badge text-xs font-medium px-2.5 py-0.5 rounded">已连接</span>
+            <span id="contextBadge" class="context-badge">上下文记忆</span>
         </div>
         
         <!-- 时钟容器 -->
@@ -747,6 +779,9 @@
         </div>
         
         <div class="flex space-x-4">
+            <button class="text-gray-400 hover:text-pink-400 transition-colors" id="clearContext" title="清除上下文">
+                <i class="fas fa-brain"></i>
+            </button>
             <button class="text-gray-400 hover:text-pink-400 transition-colors" id="clearChat" title="清空对话">
                 <i class="fas fa-trash-alt"></i>
             </button>
@@ -783,25 +818,23 @@
                 <select id="deepseekModel" class="w-full stranger-select rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="deepseek-chat">DeepSeek-Chat (推荐)</option>
                     <option value="deepseek-reasoner">DeepSeek-Reasoner</option>
-                    <option value="deepseek-v3">DeepSeek-V3</option>
-                    <option value="deepseek-v3.1">DeepSeek-V3.1</option>
                 </select>
                 
                 <div class="model-info">
-                    <p class="font-medium text-blue-300 mb-1">模型说明:</p>
-                    <div class="flex flex-wrap">
-                        <span class="model-tag tag-general">通用对话</span>
-                        <span class="model-tag tag-reasoning">逻辑推理</span>
-                        <span class="model-tag tag-latest">最新版本</span>
+                    <p class="font-medium text-blue-300 mb-1">上下文记忆设置</p>
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-400">最大对话轮数:</span>
+                        <span id="contextCount" class="text-blue-300">0</span>
                     </div>
-                    <p class="text-gray-400 mt-2">DeepSeek-Chat 为推荐模型，性能稳定，响应快速。</p>
+                    <p class="text-gray-400 mt-2">系统会自动维护最近20轮对话的上下文记忆。</p>
                 </div>
                 
                 <div class="rate-limit-notice">
                     <p><i class="fas fa-info-circle text-amber-400 mr-1"></i> <strong>提示：</strong>为保障服务稳定，系统设有使用频率限制。</p>
                 </div>
             </div>
-            
+
+            <!-- 添加缺失的OpenAI设置部分 -->
             <div id="openaiSection" class="mb-4 hidden">
                 <label class="block text-sm font-medium text-gray-300 mb-2">OpenAI API 密钥</label>
                 <input type="password" id="openaiKey" placeholder="输入您的 OpenAI API 密钥" 
@@ -818,7 +851,7 @@
                 <label class="block text-sm font-medium text-gray-300 mb-2">API 基础 URL</label>
                 <input type="text" id="baseUrl" value="https://api.deepseek.com" 
                        class="api-key-input w-full rounded-lg px-3 py-2 text-sm focus:outline-none">
-                <p class="text-xs text-gray-500 mt-1">DeepSeek API 的基础 URL</p>
+                <p class="text-xs text-gray-500 mt-1">API 的基础 URL</p>
             </div>
             
             <div class="flex justify-between items-center">
@@ -870,7 +903,7 @@
             </div>
             
             <div class="max-w-3xl mx-auto mt-2 text-xs text-gray-500 text-center fade-in">
-                <p>异次元 AI 助手 - 公共API服务，所有人均可使用</p>
+                <p>异次元 AI 助手 - 支持上下文记忆的智能对话</p>
             </div>
         </div>
     </footer>
@@ -885,17 +918,19 @@
             const messageInput = document.getElementById('messageInput');
             const sendButton = document.getElementById('sendButton');
             const clearChatButton = document.getElementById('clearChat');
+            const clearContextButton = document.getElementById('clearContext');
             const toggleSettingsButton = document.getElementById('toggleSettings');
             const showGuideButton = document.getElementById('showGuide');
             const settingsPanel = document.getElementById('settingsPanel');
             const aiProviderSelect = document.getElementById('aiProvider');
-            const apiKeyInput = document.getElementById('apiKey');
             const deepseekModelSelect = document.getElementById('deepseekModel');
             const baseUrlInput = document.getElementById('baseUrl');
             const saveSettingsButton = document.getElementById('saveSettings');
             const testAPIButton = document.getElementById('testAPI');
             const testResultDiv = document.getElementById('testResult');
             const apiStatus = document.getElementById('apiStatus');
+            const contextBadge = document.getElementById('contextBadge');
+            const contextCount = document.getElementById('contextCount');
             const digitalClock = document.getElementById('digitalClock');
             
             // 新增功能元素
@@ -904,7 +939,7 @@
             const fileInput = document.getElementById('fileInput');
             const imagePreviewContainer = document.getElementById('imagePreviewContainer');
             
-            // API提供商特定元素
+            // 修复缺失的DOM元素引用
             const deepseekSection = document.getElementById('deepseekSection');
             const openaiSection = document.getElementById('openaiSection');
             const openaiKeyInput = document.getElementById('openaiKey');
@@ -917,6 +952,10 @@
             
             // 公共API密钥
             const PUBLIC_API_KEY = 'sk-5553f687b0e14fa19dac2eec5f0721ff';
+            
+            // 上下文记忆设置
+            const MAX_CONTEXT_LENGTH = 20; // 最大上下文轮数
+            let conversationHistory = []; // 存储对话历史
             
             // 应用设置
             let settings = {
@@ -941,7 +980,7 @@
             // 检查频率限制
             function checkRateLimit() {
                 const now = Date.now();
-                if (now - lastResetTime > 60000) { // 1分钟
+                if (now - lastResetTime > 60000) {
                     requestCount = 0;
                     lastResetTime = now;
                 }
@@ -952,6 +991,106 @@
                 
                 requestCount++;
                 return true;
+            }
+            
+            // 根据选择的AI提供商显示/隐藏相关设置
+            function toggleProviderSections() {
+                // 隐藏所有部分
+                if (deepseekSection) deepseekSection.style.display = 'none';
+                if (openaiSection) openaiSection.style.display = 'none';
+                
+                // 显示选中的部分
+                if (aiProviderSelect.value === 'deepseek') {
+                    if (deepseekSection) deepseekSection.style.display = 'block';
+                    if (baseUrlInput) baseUrlInput.value = 'https://api.deepseek.com';
+                } else if (aiProviderSelect.value === 'openai') {
+                    if (openaiSection) openaiSection.style.display = 'block';
+                    if (baseUrlInput) baseUrlInput.value = 'https://api.openai.com/v1';
+                }
+            }
+            
+            // 添加上下文到历史记录
+            function addToConversationHistory(role, content, images = []) {
+                const message = {
+                    role: role,
+                    content: content,
+                    timestamp: new Date().toISOString(),
+                    images: [...images]
+                };
+                
+                conversationHistory.push(message);
+                
+                // 限制历史记录长度
+                if (conversationHistory.length > MAX_CONTEXT_LENGTH * 2) {
+                    conversationHistory = conversationHistory.slice(-MAX_CONTEXT_LENGTH * 2);
+                }
+                
+                // 更新上下文计数显示
+                updateContextCount();
+                saveConversationHistory();
+            }
+            
+            // 更新上下文计数显示
+            function updateContextCount() {
+                const userMessages = conversationHistory.filter(msg => msg.role === 'user').length;
+                if (contextCount) {
+                    contextCount.textContent = `${userMessages}/${MAX_CONTEXT_LENGTH}`;
+                }
+                
+                // 更新徽章颜色
+                if (contextBadge) {
+                    if (userMessages >= MAX_CONTEXT_LENGTH * 0.8) {
+                        contextBadge.style.background = 'rgba(244, 67, 54, 0.3)';
+                        contextBadge.style.borderColor = 'rgba(244, 67, 54, 0.5)';
+                        contextBadge.style.color = '#ef9a9a';
+                    } else if (userMessages >= MAX_CONTEXT_LENGTH * 0.5) {
+                        contextBadge.style.background = 'rgba(255, 152, 0, 0.3)';
+                        contextBadge.style.borderColor = 'rgba(255, 152, 0, 0.5)';
+                        contextBadge.style.color = '#ffcc80';
+                    } else {
+                        contextBadge.style.background = 'rgba(156, 39, 176, 0.3)';
+                        contextBadge.style.borderColor = 'rgba(156, 39, 176, 0.5)';
+                        contextBadge.style.color = '#ce93d8';
+                    }
+                }
+            }
+            
+            // 保存对话历史到localStorage
+            function saveConversationHistory() {
+                localStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));
+            }
+            
+            // 从localStorage加载对话历史
+            function loadConversationHistory() {
+                const savedHistory = localStorage.getItem('conversationHistory');
+                if (savedHistory) {
+                    conversationHistory = JSON.parse(savedHistory);
+                    updateContextCount();
+                }
+            }
+            
+            // 清除上下文记忆
+            function clearContext() {
+                if (conversationHistory.length > 0) {
+                    if (confirm('确定要清除上下文记忆吗？AI将忘记之前的对话内容。')) {
+                        conversationHistory = [];
+                        saveConversationHistory();
+                        updateContextCount();
+                        addAiMessage('上下文记忆已清除。我们可以开始新的对话了！');
+                    }
+                } else {
+                    alert('当前没有上下文记忆可清除。');
+                }
+            }
+            
+            // 构建上下文消息
+            function buildContextMessages() {
+                const systemMessage = {
+                    role: 'system',
+                    content: '你是一个有帮助的AI助手。请用中文回答用户的问题。记住之前的对话上下文，提供连贯的回答。'
+                };
+                
+                return [systemMessage, ...conversationHistory];
             }
             
             // 初始化语音识别
@@ -965,24 +1104,24 @@
                     
                     recognition.onresult = function(event) {
                         const transcript = event.results[0][0].transcript;
-                        messageInput.value = transcript;
-                        voiceBtn.classList.remove('recording');
+                        if (messageInput) messageInput.value = transcript;
+                        if (voiceBtn) voiceBtn.classList.remove('recording');
                         isRecording = false;
                     };
                     
                     recognition.onerror = function(event) {
                         console.error('语音识别错误:', event.error);
-                        voiceBtn.classList.remove('recording');
+                        if (voiceBtn) voiceBtn.classList.remove('recording');
                         isRecording = false;
                         alert('语音识别失败，请重试');
                     };
                     
                     recognition.onend = function() {
-                        voiceBtn.classList.remove('recording');
+                        if (voiceBtn) voiceBtn.classList.remove('recording');
                         isRecording = false;
                     };
                 } else {
-                    voiceBtn.style.display = 'none';
+                    if (voiceBtn) voiceBtn.style.display = 'none';
                     console.warn('浏览器不支持语音识别');
                 }
             }
@@ -993,77 +1132,53 @@
                 const hours = String(now.getHours()).padStart(2, '0');
                 const minutes = String(now.getMinutes()).padStart(2, '0');
                 const seconds = String(now.getSeconds()).padStart(2, '0');
-                digitalClock.textContent = `${hours}:${minutes}:${seconds}`;
+                if (digitalClock) {
+                    digitalClock.textContent = `${hours}:${minutes}:${seconds}`;
+                }
             }
             
             // 初始化时钟
             updateClock();
             setInterval(updateClock, 1000);
             
-            // 从localStorage加载聊天记录和设置
-            function loadChatHistoryAndSettings() {
-                const savedChat = localStorage.getItem('aiChatHistory');
+            // 从localStorage加载设置
+            function loadSettings() {
                 const savedSettings = localStorage.getItem('aiChatSettings');
-                
-                if (savedChat) {
-                    messageContainer.innerHTML = savedChat;
-                } else {
-                    addAiMessage("您好！我是您的异次元 AI 助手，已连接到 DeepSeek AI 模型。系统使用公共API密钥，所有用户均可免费使用。我支持文本对话、图片分析和语音输入功能。有什么我可以帮助您的吗？", true);
-                }
-                
                 if (savedSettings) {
                     const userSettings = JSON.parse(savedSettings);
                     settings = {
                         ...settings,
                         ...userSettings,
-                        apiKey: PUBLIC_API_KEY // 始终使用公共密钥
+                        apiKey: PUBLIC_API_KEY
                     };
                 }
                 
                 // 更新UI
-                aiProviderSelect.value = settings.aiProvider;
-                deepseekModelSelect.value = settings.deepseekModel;
-                baseUrlInput.value = settings.baseUrl;
-                openaiKeyInput.value = settings.openaiKey;
-                openaiModelSelect.value = settings.openaiModel;
+                if (aiProviderSelect) aiProviderSelect.value = settings.aiProvider;
+                if (deepseekModelSelect) deepseekModelSelect.value = settings.deepseekModel;
+                if (baseUrlInput) baseUrlInput.value = settings.baseUrl;
+                if (openaiKeyInput) openaiKeyInput.value = settings.openaiKey;
+                if (openaiModelSelect) openaiModelSelect.value = settings.openaiModel;
                 
                 toggleProviderSections();
                 updateAPIStatus();
-                scrollToBottom();
-            }
-            
-            // 保存聊天记录到localStorage
-            function saveChatHistory() {
-                localStorage.setItem('aiChatHistory', messageContainer.innerHTML);
             }
             
             // 保存设置到localStorage
             function saveSettings() {
-                settings.aiProvider = aiProviderSelect.value;
-                settings.deepseekModel = deepseekModelSelect.value;
-                settings.baseUrl = baseUrlInput.value;
-                settings.openaiKey = openaiKeyInput.value;
-                settings.openaiModel = openaiModelSelect.value;
+                settings.aiProvider = aiProviderSelect ? aiProviderSelect.value : 'deepseek';
+                settings.deepseekModel = deepseekModelSelect ? deepseekModelSelect.value : 'deepseek-chat';
+                settings.baseUrl = baseUrlInput ? baseUrlInput.value : 'https://api.deepseek.com';
+                settings.openaiKey = openaiKeyInput ? openaiKeyInput.value : '';
+                settings.openaiModel = openaiModelSelect ? openaiModelSelect.value : 'gpt-3.5-turbo';
                 
                 localStorage.setItem('aiChatSettings', JSON.stringify(settings));
             }
             
-            // 根据选择的AI提供商显示/隐藏相关设置
-            function toggleProviderSections() {
-                deepseekSection.style.display = 'none';
-                openaiSection.style.display = 'none';
-                
-                if (aiProviderSelect.value === 'deepseek') {
-                    deepseekSection.style.display = 'block';
-                    baseUrlInput.value = 'https://api.deepseek.com';
-                } else if (aiProviderSelect.value === 'openai') {
-                    openaiSection.style.display = 'block';
-                    baseUrlInput.value = 'https://api.openai.com/v1';
-                }
-            }
-            
             // 更新API状态显示
             function updateAPIStatus() {
+                if (!apiStatus) return;
+                
                 if (settings.aiProvider === 'deepseek') {
                     apiStatus.textContent = '公共服务';
                     apiStatus.className = 'ml-2 bg-green-600 text-white text-xs font-medium px-2.5 py-0.5 rounded';
@@ -1107,9 +1222,13 @@
                         <i class="fas fa-user text-white text-xs"></i>
                     </div>
                 `;
-                messageContainer.appendChild(messageElement);
+                if (messageContainer) {
+                    messageContainer.appendChild(messageElement);
+                }
                 scrollToBottom();
-                saveChatHistory();
+                
+                // 添加到上下文历史
+                addToConversationHistory('user', message, images);
             }
             
             // 添加AI消息
@@ -1127,14 +1246,20 @@
                 `;
                 
                 if (isWelcome) {
-                    messageContainer.appendChild(messageElement);
+                    if (messageContainer) {
+                        messageContainer.appendChild(messageElement);
+                    }
                 } else {
                     hideTypingIndicator();
-                    messageContainer.appendChild(messageElement);
+                    if (messageContainer) {
+                        messageContainer.appendChild(messageElement);
+                    }
+                    
+                    // 添加到上下文历史
+                    addToConversationHistory('assistant', message);
                 }
                 
                 scrollToBottom();
-                saveChatHistory();
             }
             
             // 显示AI正在输入
@@ -1154,7 +1279,9 @@
                         </div>
                     </div>
                 `;
-                messageContainer.appendChild(typingElement);
+                if (messageContainer) {
+                    messageContainer.appendChild(typingElement);
+                }
                 scrollToBottom();
             }
             
@@ -1168,22 +1295,24 @@
             
             // 滚动到底部
             function scrollToBottom() {
-                chatContainer.scrollTop = chatContainer.scrollHeight;
+                if (chatContainer) {
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }
             }
             
-            // 获取当前API密钥和模型
+            // 获取当前API信息
             function getCurrentAPIInfo() {
-                const provider = aiProviderSelect.value;
+                const provider = aiProviderSelect ? aiProviderSelect.value : 'deepseek';
                 let apiKey, model, url;
                 
                 if (provider === 'deepseek') {
                     apiKey = PUBLIC_API_KEY;
-                    model = deepseekModelSelect.value;
-                    url = baseUrlInput.value;
+                    model = deepseekModelSelect ? deepseekModelSelect.value : 'deepseek-chat';
+                    url = baseUrlInput ? baseUrlInput.value : 'https://api.deepseek.com';
                 } else if (provider === 'openai') {
-                    apiKey = openaiKeyInput.value;
-                    model = openaiModelSelect.value;
-                    url = baseUrlInput.value;
+                    apiKey = settings.openaiKey;
+                    model = settings.openaiModel;
+                    url = baseUrlInput ? baseUrlInput.value : 'https://api.openai.com/v1';
                 } else {
                     return { provider: 'mock' };
                 }
@@ -1199,11 +1328,11 @@
                     return new Promise(resolve => {
                         setTimeout(() => {
                             const mockResponses = [
-                                "这是一个很好的问题！让我为您详细解释一下...",
-                                "根据我的理解，这个问题的答案是...",
-                                "我很高兴您问这个问题！从我的角度来看...",
-                                "这是一个复杂的话题，但我会尽力为您解答...",
-                                "感谢您的提问！我认为这个问题的关键在于..."
+                                "这是一个很好的问题！基于我们之前的对话，让我为您详细解释一下...",
+                                "根据我的理解和之前的上下文，这个问题的答案是...",
+                                "我很高兴您继续这个话题！从我们之前的讨论来看...",
+                                "这是一个复杂的话题，但结合我们之前的对话，我会尽力为您解答...",
+                                "感谢您的提问！基于上下文，我认为这个问题的关键在于..."
                             ];
                             const randomResponse = mockResponses[Math.floor(Math.random() * mockResponses.length)];
                             resolve(randomResponse);
@@ -1218,26 +1347,23 @@
                     let response;
                     
                     if (apiInfo.provider === 'deepseek' || apiInfo.provider === 'openai') {
+                        const contextMessages = buildContextMessages();
+                        
+                        // 添加当前用户消息
+                        const currentUserMessage = {
+                            role: 'user',
+                            content: images.length > 0 ? 
+                                `${message}\n\n用户上传了 ${images.length} 张图片，请根据图片内容进行回答。` : 
+                                message
+                        };
+                        
                         const requestBody = {
                             model: apiInfo.model,
-                            messages: [
-                                {
-                                    role: 'system',
-                                    content: '你是一个有帮助的AI助手。请用中文回答用户的问题。'
-                                },
-                                {
-                                    role: 'user',
-                                    content: message
-                                }
-                            ],
+                            messages: [...contextMessages, currentUserMessage],
                             max_tokens: 4000,
                             temperature: 0.7,
                             stream: false
                         };
-                        
-                        if (images.length > 0) {
-                            requestBody.messages[1].content += `\n\n用户上传了 ${images.length} 张图片，请根据图片内容进行回答。`;
-                        }
                         
                         if (apiInfo.provider === 'deepseek') {
                             requestBody.frequency_penalty = 0;
@@ -1317,20 +1443,22 @@
                                 <i class="fas fa-times"></i>
                             </button>
                         `;
-                        imagePreviewContainer.appendChild(imagePreview);
-                        imagePreviewContainer.classList.remove('hidden');
+                        if (imagePreviewContainer) {
+                            imagePreviewContainer.appendChild(imagePreview);
+                            imagePreviewContainer.classList.remove('hidden');
+                        }
                         
                         imagePreview.querySelector('.remove-image').addEventListener('click', function() {
                             const index = parseInt(this.getAttribute('data-index'));
                             uploadedImages.splice(index, 1);
                             imagePreview.remove();
                             
-                            const removeButtons = imagePreviewContainer.querySelectorAll('.remove-image');
+                            const removeButtons = imagePreviewContainer ? imagePreviewContainer.querySelectorAll('.remove-image') : [];
                             removeButtons.forEach((btn, idx) => {
                                 btn.setAttribute('data-index', idx);
                             });
                             
-                            if (uploadedImages.length === 0) {
+                            if (uploadedImages.length === 0 && imagePreviewContainer) {
                                 imagePreviewContainer.classList.add('hidden');
                             }
                         });
@@ -1338,7 +1466,7 @@
                     reader.readAsDataURL(file);
                 }
                 
-                fileInput.value = '';
+                if (fileInput) fileInput.value = '';
             }
             
             // 语音输入处理
@@ -1350,11 +1478,11 @@
                 
                 if (isRecording) {
                     recognition.stop();
-                    voiceBtn.classList.remove('recording');
+                    if (voiceBtn) voiceBtn.classList.remove('recording');
                     isRecording = false;
                 } else {
                     recognition.start();
-                    voiceBtn.classList.add('recording');
+                    if (voiceBtn) voiceBtn.classList.add('recording');
                     isRecording = true;
                 }
             }
@@ -1368,8 +1496,10 @@
                     return;
                 }
                 
-                testAPIButton.disabled = true;
-                testAPIButton.textContent = '测试中...';
+                if (testAPIButton) {
+                    testAPIButton.disabled = true;
+                    testAPIButton.textContent = '测试中...';
+                }
                 
                 try {
                     checkRateLimit();
@@ -1377,20 +1507,24 @@
                     const response = await sendMessageToAI(testMessage);
                     
                     if (response && response.includes('测试成功')) {
-                        showTestResult('连接测试成功！公共API服务正常运行', 'success');
+                        showTestResult('连接测试成功！上下文记忆功能正常', 'success');
                     } else {
                         showTestResult('响应异常', 'warning');
                     }
                 } catch (error) {
                     showTestResult(`连接测试失败: ${error.message}`, 'error');
                 } finally {
-                    testAPIButton.disabled = false;
-                    testAPIButton.textContent = '测试连接';
+                    if (testAPIButton) {
+                        testAPIButton.disabled = false;
+                        testAPIButton.textContent = '测试连接';
+                    }
                 }
             }
             
             // 显示测试结果
             function showTestResult(message, type) {
+                if (!testResultDiv) return;
+                
                 testResultDiv.textContent = message;
                 testResultDiv.className = 'mt-4 p-3 rounded-lg text-sm';
                 
@@ -1409,14 +1543,16 @@
             
             // 发送消息
             async function sendMessage() {
-                const message = messageInput.value.trim();
+                const message = messageInput ? messageInput.value.trim() : '';
                 if (message === '' && uploadedImages.length === 0) return;
                 
                 addUserMessage(message || '[图片消息]', uploadedImages);
                 
-                messageInput.value = '';
-                imagePreviewContainer.innerHTML = '';
-                imagePreviewContainer.classList.add('hidden');
+                if (messageInput) messageInput.value = '';
+                if (imagePreviewContainer) {
+                    imagePreviewContainer.innerHTML = '';
+                    imagePreviewContainer.classList.add('hidden');
+                }
                 
                 showTypingIndicator();
                 
@@ -1434,13 +1570,17 @@
             
             // 清空聊天
             function clearChat() {
-                if (confirm('确定要清空聊天记录吗？')) {
-                    messageContainer.innerHTML = '';
+                if (confirm('确定要清空所有聊天记录吗？这将清除所有消息和上下文记忆。')) {
+                    if (messageContainer) messageContainer.innerHTML = '';
+                    conversationHistory = [];
                     uploadedImages = [];
-                    imagePreviewContainer.innerHTML = '';
-                    imagePreviewContainer.classList.add('hidden');
-                    addAiMessage("您好！我是您的异次元 AI 助手，已连接到 DeepSeek AI 模型。系统使用公共API密钥，所有用户均可免费使用。我支持文本对话、图片分析和语音输入功能。有什么我可以帮助您的吗？", true);
-                    saveChatHistory();
+                    if (imagePreviewContainer) {
+                        imagePreviewContainer.innerHTML = '';
+                        imagePreviewContainer.classList.add('hidden');
+                    }
+                    saveConversationHistory();
+                    updateContextCount();
+                    addAiMessage("您好！我是您的异次元 AI 助手。系统已清空所有对话记录，我们可以开始全新的对话了！", true);
                 }
             }
             
@@ -1449,64 +1589,74 @@
                 saveSettings();
                 updateAPIStatus();
                 
-                settingsPanel.classList.remove('open');
+                if (settingsPanel) settingsPanel.classList.remove('open');
                 
                 alert('设置已保存！');
             }
             
             // 显示指南
             function showGuide() {
-                guideModal.classList.add('open');
+                if (guideModal) guideModal.classList.add('open');
             }
             
             // 隐藏指南
             function hideGuide() {
-                guideModal.classList.remove('open');
+                if (guideModal) guideModal.classList.remove('open');
             }
             
             // 切换设置面板显示/隐藏
             function toggleSettingsPanel() {
-                settingsPanel.classList.toggle('open');
+                if (settingsPanel) settingsPanel.classList.toggle('open');
             }
             
             // 事件监听
-            sendButton.addEventListener('click', sendMessage);
+            if (sendButton) sendButton.addEventListener('click', sendMessage);
             
-            messageInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    sendMessage();
-                }
+            if (messageInput) {
+                messageInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        sendMessage();
+                    }
+                });
+            }
+            
+            if (clearChatButton) clearChatButton.addEventListener('click', clearChat);
+            if (clearContextButton) clearContextButton.addEventListener('click', clearContext);
+            
+            if (toggleSettingsButton) toggleSettingsButton.addEventListener('click', toggleSettingsPanel);
+            
+            if (showGuideButton) showGuideButton.addEventListener('click', showGuide);
+            
+            if (aiProviderSelect) aiProviderSelect.addEventListener('change', function() {
+                toggleProviderSections();
+                updateAPIStatus();
             });
             
-            clearChatButton.addEventListener('click', clearChat);
+            if (saveSettingsButton) saveSettingsButton.addEventListener('click', saveSettingsToStorage);
             
-            toggleSettingsButton.addEventListener('click', toggleSettingsPanel);
+            if (testAPIButton) testAPIButton.addEventListener('click', testAPIConnection);
             
-            showGuideButton.addEventListener('click', showGuide);
-            
-            aiProviderSelect.addEventListener('change', toggleProviderSections);
-            
-            saveSettingsButton.addEventListener('click', saveSettingsToStorage);
-            
-            testAPIButton.addEventListener('click', testAPIConnection);
-            
-            closeGuide.addEventListener('click', hideGuide);
-            closeGuideBtn.addEventListener('click', hideGuide);
+            if (closeGuide) closeGuide.addEventListener('click', hideGuide);
+            if (closeGuideBtn) closeGuideBtn.addEventListener('click', hideGuide);
             
             // 新增功能事件监听
-            imageUploadBtn.addEventListener('click', function() {
-                fileInput.click();
-            });
+            if (imageUploadBtn) {
+                imageUploadBtn.addEventListener('click', function() {
+                    if (fileInput) fileInput.click();
+                });
+            }
             
-            fileInput.addEventListener('change', handleImageUpload);
+            if (fileInput) fileInput.addEventListener('change', handleImageUpload);
             
-            voiceBtn.addEventListener('click', toggleVoiceInput);
+            if (voiceBtn) voiceBtn.addEventListener('click', toggleVoiceInput);
             
             // 初始化语音识别
             initSpeechRecognition();
             
             // 初始化
-            loadChatHistoryAndSettings();
+            loadSettings();
+            loadConversationHistory();
+            addAiMessage("您好！我是您的异次元 AI 助手，已连接到 DeepSeek AI 模型。我具备上下文记忆功能，可以记住我们之前的对话内容。系统使用公共API密钥，所有用户均可免费使用。我支持文本对话、图片分析和语音输入功能。有什么我可以帮助您的吗？", true);
         });
     </script>
 </body>
