@@ -153,6 +153,13 @@
             box-shadow: 0 0 20px rgba(255, 0, 128, 0.6);
         }
         
+        .send-button:disabled {
+            background: linear-gradient(135deg, #666, #888);
+            transform: none;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        
         .fade-in {
             animation: fadeIn 0.5s ease-out;
         }
@@ -977,6 +984,9 @@
             const MAX_REQUESTS_PER_MINUTE = 30;
             let lastResetTime = Date.now();
             
+            // 打字机效果相关变量
+            let isTypingEffectActive = false;
+            
             // 检查频率限制
             function checkRateLimit() {
                 const now = Date.now();
@@ -1231,23 +1241,38 @@
                 addToConversationHistory('user', message, images);
             }
             
-            // 添加AI消息
-            function addAiMessage(message, isWelcome = false) {
+            // 添加AI消息（带打字机效果）
+            function addAiMessageWithTypewriter(message, isWelcome = false) {
                 const messageElement = document.createElement('div');
                 messageElement.className = 'ai-message mb-6 flex items-start';
+                
+                // 创建消息内容容器
+                const messageContent = document.createElement('div');
+                messageContent.className = 'ai-bubble message-bubble rounded-2xl rounded-tl-none px-4 py-3 max-w-[85%]';
+                
+                // 创建消息文本容器
+                const messageText = document.createElement('p');
+                messageText.className = 'text-white';
+                
+                // 创建时间戳
+                const timestamp = document.createElement('span');
+                timestamp.className = 'text-xs text-blue-300 mt-1 block';
+                timestamp.textContent = getCurrentTime();
+                
+                messageContent.appendChild(messageText);
+                messageContent.appendChild(timestamp);
+                
                 messageElement.innerHTML = `
                     <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center mr-3 flex-shrink-0 shadow-sm">
                         <i class="fas fa-robot text-white text-sm"></i>
                     </div>
-                    <div class="ai-bubble message-bubble rounded-2xl rounded-tl-none px-4 py-3 max-w-[85%]">
-                        <p class="text-white">${message}</p>
-                        <span class="text-xs text-blue-300 mt-1 block">${getCurrentTime()}</span>
-                    </div>
                 `;
+                messageElement.appendChild(messageContent);
                 
                 if (isWelcome) {
                     if (messageContainer) {
                         messageContainer.appendChild(messageElement);
+                        messageText.textContent = message;
                     }
                 } else {
                     hideTypingIndicator();
@@ -1255,11 +1280,43 @@
                         messageContainer.appendChild(messageElement);
                     }
                     
-                    // 添加到上下文历史
-                    addToConversationHistory('assistant', message);
+                    // 使用打字机效果显示消息
+                    typewriterEffect(messageText, message, function() {
+                        // 打字完成后的回调
+                        isTypingEffectActive = false;
+                        enableSendButton();
+                        
+                        // 添加到上下文历史
+                        addToConversationHistory('assistant', message);
+                    });
                 }
                 
                 scrollToBottom();
+            }
+            
+            // 打字机效果函数
+            function typewriterEffect(element, text, callback) {
+                isTypingEffectActive = true;
+                let i = 0;
+                element.textContent = '';
+                
+                function typeCharacter() {
+                    if (i < text.length) {
+                        element.textContent += text.charAt(i);
+                        i++;
+                        scrollToBottom();
+                        setTimeout(typeCharacter, 20); // 调整打字速度
+                    } else {
+                        if (callback) callback();
+                    }
+                }
+                
+                typeCharacter();
+            }
+            
+            // 添加AI消息（兼容旧代码）
+            function addAiMessage(message, isWelcome = false) {
+                addAiMessageWithTypewriter(message, isWelcome);
             }
             
             // 显示AI正在输入
@@ -1290,6 +1347,22 @@
                 const typingIndicator = document.getElementById('typingIndicator');
                 if (typingIndicator) {
                     typingIndicator.remove();
+                }
+            }
+            
+            // 禁用发送按钮
+            function disableSendButton() {
+                if (sendButton) {
+                    sendButton.disabled = true;
+                    sendButton.style.cursor = 'not-allowed';
+                }
+            }
+            
+            // 启用发送按钮
+            function enableSendButton() {
+                if (sendButton) {
+                    sendButton.disabled = false;
+                    sendButton.style.cursor = 'pointer';
                 }
             }
             
@@ -1554,16 +1627,21 @@
                     imagePreviewContainer.classList.add('hidden');
                 }
                 
+                // 禁用发送按钮
+                disableSendButton();
+                
                 showTypingIndicator();
                 
                 try {
                     const aiResponse = await sendMessageToAI(message, uploadedImages);
+                    hideTypingIndicator();
                     addAiMessage(aiResponse);
                     
                     uploadedImages = [];
                 } catch (error) {
                     console.error('获取AI响应时出错:', error);
                     hideTypingIndicator();
+                    enableSendButton(); // 出错时重新启用发送按钮
                     addAiMessage(`抱歉，我遇到了一些问题: ${error.message}。请稍后再试。`);
                 }
             }
